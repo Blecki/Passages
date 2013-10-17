@@ -1,0 +1,19 @@
+This is a sample passages file.
+
+Non-leaf item
+{ This is a summary of the non-leaf item.
+	Leaf-item 1
+	Leaf-item 2
+	* This is a note. ExtractProse should skip it.
+	{
+		Notes can have bodies, however.
+	}
+	<<(import "sample2.psg")>>
+	<<(import "sample2.psg")>>
+	* Embedded scripts can do things like import other files.
+	<<(+ 2 2)>>
+	* Or arithmetic
+}
+
+Leaf-item 3
+Leaf-item 4
