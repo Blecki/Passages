@@ -19,6 +19,7 @@ namespace Passages
             {
                 var scriptEngine = new MISP.Engine();
                 Preprocessor.SetupScriptEngine(scriptEngine);
+                scriptEngine.AddGlobalVariable("options", (c) => { return options; });
                 var source = System.IO.File.ReadAllText(options.inFile);
                 var processed = Preprocessor.Preprocess(source, scriptEngine);
 

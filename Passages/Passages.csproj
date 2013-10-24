@@ -35,6 +35,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MISP">
+      <HintPath>..\..\MISP\MISP\bin\Release\MISP.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,38 +47,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MISP\Arguments.cs" />
-    <Compile Include="MISP\AutoBind.cs" />
-    <Compile Include="MISP\CachedReflectionScriptObject.cs" />
-    <Compile Include="MISP\Console.cs" />
-    <Compile Include="MISP\Context.cs" />
-    <Compile Include="MISP\Engine.cs" />
-    <Compile Include="MISP\Evaluate.cs" />
-    <Compile Include="MISP\Function.cs" />
-    <Compile Include="MISP\NetModule.cs" />
-    <Compile Include="MISP\Parser.cs" />
-    <Compile Include="MISP\ParseState.cs" />
-    <Compile Include="MISP\PrefixCheck.cs" />
-    <Compile Include="MISP\Scope.cs" />
-    <Compile Include="MISP\ScriptError.cs" />
-    <Compile Include="MISP\ScriptList.cs" />
-    <Compile Include="MISP\ScriptObject.cs" />
-    <Compile Include="MISP\ScriptSerializable.cs" />
-    <Compile Include="MISP\Serialization.cs" />
-    <Compile Include="MISP\SerializeCode.cs" />
-    <Compile Include="MISP\SLBranching.cs" />
-    <Compile Include="MISP\SLEncryption.cs" />
-    <Compile Include="MISP\SLFile.cs" />
-    <Compile Include="MISP\SLFunctions.cs" />
-    <Compile Include="MISP\SLLists.cs" />
-    <Compile Include="MISP\SLLoops.cs" />
-    <Compile Include="MISP\SLMath.cs" />
-    <Compile Include="MISP\SLObjects.cs" />
-    <Compile Include="MISP\SLRegex.cs" />
-    <Compile Include="MISP\SLStrings.cs" />
-    <Compile Include="MISP\SLVariables.cs" />
-    <Compile Include="MISP\StandardLibrary.cs" />
-    <Compile Include="MISP\Upsert.cs" />
     <Compile Include="Preprocessor.cs" />
     <Compile Include="Extraction.cs" />
     <Compile Include="ExtractProse.cs" />

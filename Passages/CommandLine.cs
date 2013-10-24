@@ -10,6 +10,12 @@ namespace Passages
         public String inFile;
         public String outFile;
         public String mode;
+        public List<String> options = new List<string>();
+
+        public bool isset(String opt)
+        {
+            return options.Contains(opt);
+        }
     }
 
     public class CommandLine
@@ -32,7 +38,7 @@ namespace Passages
                         PrintHelpTopic("main");
                     return false;
                 }
-                else if (args[i] == "-in" || args[i] == "-input" || args[i] == "-infile")
+                else if (args[i] == "-i" || args[i] == "-in" || args[i] == "-input" || args[i] == "-infile")
                 {
                     if (i + 1 < args.Length)
                     {
@@ -42,7 +48,7 @@ namespace Passages
                     else
                         return false;
                 }
-                else if (args[i] == "-out" || args[i] == "-output" || args[i] == "-outfile")
+                else if (args[i] == "-o" || args[i] == "-out" || args[i] == "-output" || args[i] == "-outfile")
                 {
                     if (i + 1 < args.Length)
                     {
@@ -69,6 +75,19 @@ namespace Passages
                     else
                     {
                         Console.WriteLine("You must supply an argument to -mode");
+                        return false;
+                    }
+                }
+                else if (args[i] == "-option" || args[i] == "-op")
+                {
+                    if (i + 1 < args.Length)
+                    {
+                        options.options.Add(args[i + 1]);
+                        ++i;
+                    }
+                    else
+                    {
+                        Console.WriteLine("You must supply an argument to -option");
                         return false;
                     }
                 }
@@ -128,11 +147,12 @@ namespace Passages
                 Console.WriteLine("-in/-i : Specify input file");
                 Console.WriteLine("-out/-o : Specify output file");
                 Console.WriteLine("-mode/-m : Specify mode. See -help mode for list of modes");
+                Console.WriteLine("-option/-op : Specify options for file to be built");
             }
             else if (topic == "topic" || topic == "topics")
             {
                 Console.WriteLine("Help topics:");
-                Console.WriteLine("-in -out -mode modes");
+                Console.WriteLine("-in -out -mode modes -option");
             }
             else if (topic == "-mode" || topic == "mode" || topic == "-m" || topic == "modes")
             {
