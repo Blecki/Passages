@@ -15,7 +15,6 @@ namespace Passages
                     var filename = args[0].ToString();
                     var file = System.IO.File.ReadAllText(filename);
                     (context.tag as PreprocessContext).Append(Preprocess(file, ScriptEngine));
-                    (context.tag as PreprocessContext).wrote = true;
                     return null;
                 },
                 MISP.Arguments.Arg("filename"));
@@ -33,21 +32,33 @@ namespace Passages
                 {
                     var str = args[0].ToString();
                     (context.tag as PreprocessContext).Append(MISP.Console.UnescapeString(str));
-                    (context.tag as PreprocessContext).wrote = true;
                     return null;
                 },
                 MISP.Arguments.Arg("string"));
+
+            ScriptEngine.AddFunction("capture", "Capture what the second argument has written",
+                (context, args) =>
+                {
+                    var pcontext = context.tag as PreprocessContext;
+                    var oldBuilder = pcontext.builder;
+                    pcontext.builder = new StringBuilder();
+                    ScriptEngine.Evaluate(context, args[0], true, false);
+                    var r = pcontext.builder.ToString();
+                    pcontext.builder = oldBuilder;
+                    return r;
+                },
+                MISP.Arguments.Lazy("code"));
         }
 
         internal class PreprocessContext
         {
             internal StringBuilder builder;
-            internal bool wrote = false;
 
             internal void Append(String s)
             {
                 builder.Append(s);
             }
+
         }
          
         public static String Preprocess(String text, MISP.Engine ScriptEngine)
@@ -62,8 +73,16 @@ namespace Passages
             {
                 while (!state.AtEnd() && !state.MatchNext("<<"))
                 {
-                    output.Append(state.Next());
-                    state.Advance();
+                    if (state.MatchNext("\\<<")) //Skip escaped open brackets
+                    {
+                        output.Append("<<");
+                        state.Advance(3);
+                    }
+                    else
+                    {
+                        output.Append(state.Next());
+                        state.Advance();
+                    }
                 }
                 if (!state.AtEnd())
                 {
@@ -87,8 +106,7 @@ namespace Passages
                     var scriptContext = new MISP.Context("@globals", preprocessGlobals);
                     scriptContext.tag = preprocessContext;
                     scriptContext.limitExecutionTime = false;
-                    var result = ScriptEngine.EvaluateString(scriptContext, script.ToString(), "", false);
-                    preprocessContext.wrote = false;
+                    ScriptEngine.EvaluateString(scriptContext, script.ToString(), "", false);
                     if (scriptContext.evaluationState == MISP.EvaluationState.UnwindingError)
                     {
                         Console.WriteLine("Error in preprocessing");
@@ -97,8 +115,6 @@ namespace Passages
                         foreach (var item in scriptContext.errorObject["stack-trace"] as MISP.ScriptList)
                             Console.WriteLine("- " + item);
                     }
-                    if (result != null && !preprocessContext.wrote)
-                        output.Append(result.ToString());
                 }
             }
 
