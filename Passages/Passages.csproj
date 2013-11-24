@@ -35,8 +35,8 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MISP">
-      <HintPath>..\..\MISP\MISP\bin\Release\MISP.dll</HintPath>
+    <Reference Include="Misp2">
+      <HintPath>..\..\MISP\Misp2\bin\Release\Misp2.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml.Linq" />
@@ -62,7 +62,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy $(TargetPath) C:\Passages\$(TargetFileName)
-copy $(TargetDir)MISP.dll C:\Passages\MISP.dll</PostBuildEvent>
+copy $(TargetDir)Misp2.dll C:\Passages\Misp2.dll</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

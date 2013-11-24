@@ -22,19 +22,19 @@ namespace Passages
                     System.IO.FileStream destination = null;// System.IO.File.Open(options.outFile, System.IO.FileMode.Create);
                     System.IO.StreamWriter writer = null;// new System.IO.StreamWriter(destination);
 
-                    var scriptEngine = new MISP.Engine();
+                    var scriptEngine = MISP.Environment.CreateStandardEnvironment();
                     Preprocessor.SetupScriptEngine(scriptEngine);
 
-                    scriptEngine.AddGlobalVariable("options", (c) => { return options; });
+                    scriptEngine.AddCompileTimeConstant("options", options);
+                    scriptEngine.AddCompileTimeConstant("@globals", new MISP.ScriptObject());
 
-
-                    scriptEngine.AddFunction("retarget", "redirect the output of the preprocessor",
+                    scriptEngine.AddNativeFunction("retarget",
                         (context, cargs) =>
                         {
                             var newTarget = cargs[0].ToString();
 
                             //Grab existing buffer
-                            var bufferBuilder = context.tag as Preprocessor.PreprocessContext;
+                            var bufferBuilder = context.Tag as Preprocessor.PreprocessContext;
                             var buffer = bufferBuilder.builder.ToString();
 
                             if (writer == null && !String.IsNullOrEmpty(buffer))
@@ -56,8 +56,8 @@ namespace Passages
                             destination = System.IO.File.Open(newTarget, System.IO.FileMode.Create);
                             writer = new System.IO.StreamWriter(destination);
 
-                            return null;
-                        }, MISP.Arguments.Arg("filename"));
+                            return true;
+                        });
 
 
                     var source = System.IO.File.ReadAllText(options.inFile);
@@ -80,10 +80,10 @@ namespace Passages
                     var destination = System.IO.File.Open(options.outFile, System.IO.FileMode.Create);
                     var writer = new System.IO.StreamWriter(destination);
 
-                    var scriptEngine = new MISP.Engine();
-                    Preprocessor.SetupScriptEngine(scriptEngine);
+                    var scriptEngine = MISP.Environment.CreateStandardEnvironment();
+                    scriptEngine.AddCompileTimeConstant("options", options);
+                    scriptEngine.AddCompileTimeConstant("@globals", new MISP.ScriptObject());
 
-                    scriptEngine.AddGlobalVariable("options", (c) => { return options; });
 
                     var source = System.IO.File.ReadAllText(options.inFile);
                     var processed = Preprocessor.Preprocess(source, scriptEngine);

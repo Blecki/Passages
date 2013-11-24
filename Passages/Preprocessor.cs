@@ -7,47 +7,72 @@ namespace Passages
 {
     public class Preprocessor
     {
-        public static void SetupScriptEngine(MISP.Engine ScriptEngine)
+        public static String UnescapeString(String s)
         {
-            ScriptEngine.AddFunction("import", "Load a file and preprocess it",
+            var place = 0;
+            var r = "";
+            while (place < s.Length)
+            {
+                if (s[place] == '\\')
+                {
+                    if (place < s.Length - 1)
+                    {
+                        if (s[place + 1] == 'n')
+                            r += '\n';
+                        else if (s[place + 1] == 't')
+                            r += '\t';
+                        else if (s[place + 1] == 'r')
+                            r += '\r';
+                        else r += s[place + 1];
+                    }
+                    place += 2;
+                }
+                else
+                {
+                    r += s[place];
+                    ++place;
+                }
+            }
+            return r;
+        }
+
+        public static void SetupScriptEngine(MISP.Environment ScriptEngine)
+        {
+            ScriptEngine.AddNativeFunction("import",
                 (context, args) =>
                 {
                     var filename = args[0].ToString();
                     var file = System.IO.File.ReadAllText(filename);
-                    (context.tag as PreprocessContext).Append(Preprocess(file, ScriptEngine));
+                    (context.Tag as PreprocessContext).Append(Preprocess(file, ScriptEngine));
                     return null;
-                },
-                MISP.Arguments.Arg("filename"));
+                });
 
-            ScriptEngine.AddFunction("preprocess", "Preprocess some text. Recursive preprocessing!",
+            ScriptEngine.AddNativeFunction("preprocess", 
                 (context, args) =>
                 {
                     var text = args[0].ToString();
                     return Preprocess(text, ScriptEngine);
-                },
-                MISP.Arguments.Arg("text"));
+                });
 
-            ScriptEngine.AddFunction("write", "write to the processed output",
+            ScriptEngine.AddNativeFunction("write",
                 (context, args) =>
                 {
                     var str = args[0].ToString();
-                    (context.tag as PreprocessContext).Append(MISP.Console.UnescapeString(str));
+                    (context.Tag as PreprocessContext).Append(UnescapeString(str));
                     return null;
-                },
-                MISP.Arguments.Arg("string"));
+                });
 
-            ScriptEngine.AddFunction("capture", "Capture what the second argument has written",
+            ScriptEngine.AddNativeFunction("capture",
                 (context, args) =>
                 {
-                    var pcontext = context.tag as PreprocessContext;
+                    var pcontext = context.Tag as PreprocessContext;
                     var oldBuilder = pcontext.builder;
                     pcontext.builder = new StringBuilder();
-                    ScriptEngine.Evaluate(context, args[0], true, false);
+                    ScriptEngine.RunScript(args[0].ToString());
                     var r = pcontext.builder.ToString();
                     pcontext.builder = oldBuilder;
                     return r;
-                },
-                MISP.Arguments.Lazy("code"));
+                });
         }
 
         internal class PreprocessContext
@@ -61,13 +86,13 @@ namespace Passages
 
         }
          
-        public static String Preprocess(String text, MISP.Engine ScriptEngine)
+        public static String Preprocess(String text, MISP.Environment ScriptEngine)
         {
             var state = new ParseState { start = 0, end = text.Length, source = text };
             var output = new StringBuilder();
             var preprocessContext = new PreprocessContext();
             preprocessContext.builder = output;
-            var preprocessGlobals = new MISP.GenericScriptObject();
+            var preprocessGlobals = new MISP.ScriptObject();
 
             while (!state.AtEnd())
             {
@@ -103,17 +128,13 @@ namespace Passages
                     }
                     if (!state.AtEnd()) state.Advance(2); //skip >>
 
-                    var scriptContext = new MISP.Context("@globals", preprocessGlobals);
-                    scriptContext.tag = preprocessContext;
-                    scriptContext.limitExecutionTime = false;
-                    ScriptEngine.EvaluateString(scriptContext, script.ToString(), "", false);
-                    if (scriptContext.evaluationState == MISP.EvaluationState.UnwindingError)
+                    var scriptContext = ScriptEngine.CompileScript(script.ToString());
+                    scriptContext.Tag = preprocessContext;
+                    ScriptEngine.RunScript(scriptContext);
+                    if (scriptContext.ExecutionState == MISP.ExecutionState.Error)
                     {
                         Console.WriteLine("Error in preprocessing");
-                        Console.WriteLine(scriptContext.errorObject["message"]);
-                        Console.WriteLine("Stack trace:");
-                        foreach (var item in scriptContext.errorObject["stack-trace"] as MISP.ScriptList)
-                            Console.WriteLine("- " + item);
+                        Console.WriteLine(scriptContext.ErrorMessage);
                     }
                 }
             }
